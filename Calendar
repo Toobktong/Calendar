@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">a
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบจัดการตารางเวลาสำหรับ Auditor</title>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=TH+Sarabun+PSK:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* CSS ทั้งหมดตามเดิม */
         * {
             margin: 0;
             padding: 0;
@@ -80,6 +81,11 @@
             color: #667eea;
             font-weight: 600;
         }
+        
+        /* Tab Content Containers */
+        .tab-content {
+            display: none;
+        }
 
         .calendar-full {
             background: white;
@@ -87,7 +93,7 @@
             padding: 40px;
             margin-top: 50px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            display: block;
+            display: block; /* Default tab */
         }
 
         .calendar-full h2 {
@@ -123,6 +129,15 @@
             cursor: pointer;
             font-size: 1rem;
             font-family: 'Prompt', 'TH Sarabun PSK', sans-serif;
+            transition: background 0.2s ease;
+        }
+        
+        .nav-btn:hover {
+            background: #5a6edb;
+        }
+        
+        .nav-btn:active {
+             background: #4d5ecd;
         }
 
         .current-month {
@@ -148,13 +163,14 @@
 
         .full-calendar-day {
             background: #f8f9fa;
-            padding: 15px;
+            padding: 15px 5px 5px 5px; /* ปรับ padding ด้านบนให้น้อยลงเพื่อแสดงวันที่ */
             min-height: 80px;
             border-radius: 5px;
             border: 1px solid #e9ecef;
             cursor: pointer;
             transition: all 0.2s ease;
             position: relative;
+            text-align: left; /* ปรับการจัดวางข้อความในวัน */
         }
 
         .full-calendar-day:hover {
@@ -165,21 +181,50 @@
         .full-calendar-day.other-month {
             background: #f0f0f0;
             color: #999;
+            cursor: default;
+        }
+        
+        .full-calendar-day.other-month:hover {
+            background: #f0f0f0;
+            border-color: #e9ecef;
         }
 
         .full-calendar-day.today {
-            background: #e3f2fd;
-            border: 2px solid #667eea;
+            background: #fff3e0; /* สีส้มอ่อนสำหรับวันนี้ */
+            border: 2px solid #ff9800; /* ขอบส้มสำหรับวันนี้ */
+        }
+        
+        .full-calendar-day.sunday, .full-calendar-day.saturday {
+            /* สีสำหรับวันเสาร์-อาทิตย์ */
+            background: #fde8e9; 
         }
 
         .full-calendar-day.holiday {
             background: #ffebee;
-            border-color: #ffcdd2;
+            border-color: #f44336;
         }
+        
+        .full-calendar-day.has-note {
+             /* สีเน้นวันที่ที่มี Note */
+            border: 2px solid #764ba2;
+            box-shadow: 0 0 5px rgba(118, 75, 162, 0.5);
+        }
+
 
         .day-date {
             font-weight: 600;
             margin-bottom: 5px;
+            display: block;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+        
+        .full-calendar-day.holiday .day-date {
+            color: #f44336;
+        }
+        
+        .full-calendar-day.sunday .day-date, .full-calendar-day.saturday .day-date {
+            color: #f44336;
         }
 
         .event-dot {
@@ -197,10 +242,26 @@
             padding: 2px 6px;
             border-radius: 10px;
             font-size: 0.7rem;
-            display: inline-block;
+            display: block; /* แสดงเป็นบล็อกเพื่อให้ขึ้นบรรทัดใหม่ */
             margin-top: 5px;
+            text-align: center;
+            font-weight: 500;
+            line-height: 1;
         }
-
+        
+        .note-preview {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 5px;
+            max-height: 30px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: block;
+            padding: 0 5px;
+        }
+        
+        /* สไตล์เดิมที่เหลือ */
         .day-events {
             font-size: 0.7rem;
             color: #666;
@@ -218,6 +279,7 @@
         }
 
         /* Modal Styles */
+        /* ... (Modal CSS codes are kept as is) ... */
         .modal {
             display: none;
             position: fixed;
@@ -326,6 +388,11 @@
             cursor: pointer;
             font-weight: 600;
             font-family: 'Prompt', 'TH Sarabun PSK', sans-serif;
+            transition: background 0.2s;
+        }
+        
+        .cancel-btn:hover {
+             background: #e0e0e0;
         }
 
         .save-note-btn {
@@ -337,6 +404,11 @@
             cursor: pointer;
             font-weight: 600;
             font-family: 'Prompt', 'TH Sarabun PSK', sans-serif;
+            transition: opacity 0.2s;
+        }
+        
+        .save-note-btn:hover {
+            opacity: 0.9;
         }
 
         /* Report Password Modal */
@@ -396,6 +468,22 @@
             justify-content: flex-end;
             gap: 10px;
         }
+        
+        .btn { /* ใช้สำหรับปุ่มยืนยันใน Modal รหัสผ่าน */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: 'Prompt', 'TH Sarabun PSK', sans-serif;
+            transition: opacity 0.2s;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+        }
 
         /* Report Modal */
         .report-modal {
@@ -451,6 +539,7 @@
             border-radius: 10px;
             font-size: 1rem;
             font-family: 'Prompt', 'TH Sarabun PSK', sans-serif;
+            background: white;
         }
 
         .form-control:focus {
@@ -473,6 +562,11 @@
             cursor: pointer;
             font-weight: 600;
             font-family: 'Prompt', 'TH Sarabun PSK', sans-serif;
+            transition: opacity 0.2s;
+        }
+        
+        .download-btn:hover {
+            opacity: 0.9;
         }
 
         /* Settings Modal */
@@ -584,6 +678,7 @@
             margin-bottom: 10px;
             padding: 10px;
             border-bottom: 1px solid #eee;
+            word-wrap: break-word; /* เพื่อให้ข้อความยาวๆ ไม่ล้นออกไป */
         }
 
         .log-entry:last-child {
@@ -609,7 +704,7 @@
 
         .log-stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 15px;
             margin-top: 10px;
         }
@@ -661,6 +756,14 @@
                 min-height: 60px;
                 font-size: 0.9rem;
             }
+            
+            .full-calendar-header-day {
+                padding: 10px 5px;
+            }
+            
+            .day-date {
+                font-size: 1rem;
+            }
         }
 
         @media (max-width: 480px) {
@@ -685,19 +788,17 @@
     <div class="container">
         <header>
             <h1>ระบบจัดการตารางเวลาสำหรับ Auditor</h1>
-            <p class="subtitle">ใช้ Google Calendar / Outlook Calendar ที่แชร์ร่วมกัน เพื่อให้ Auditor สามารถบล็อกเวลาที่ไม่สะดวกล่วงหน้าได้ ทีมวางแผนจะได้เห็นภาพรวมและทำงานง่ายขึ้น</p>
+            <p class="subtitle">ใช้ Local Storage (สำหรับการ Deploy แบบ Static) เพื่อให้ Auditor สามารถบล็อกเวลาที่ไม่สะดวกและบันทึก Note ได้</p>
         </header>
 
-        <!-- Navigation Menu -->
         <div class="navbar">
             <div class="nav-item active" data-tab="calendar">ปฏิทิน</div>
             <div class="nav-item" data-tab="reports">รายงาน</div>
             <div class="nav-item" data-tab="settings">ตั้งค่า</div>
         </div>
 
-        <!-- ปฏิทินแบบเต็ม -->
-        <div class="calendar-full" id="calendar-full">
-            <h2>ปฏิทินแบบเต็ม</h2>
+        <div class="calendar-full tab-content" id="calendar-full">
+            <h2>ปฏิทิน Auditor</h2>
             <div class="full-calendar">
                 <div class="full-calendar-header">
                     <div class="month-navigation">
@@ -707,17 +808,26 @@
                     </div>
                 </div>
                 <div class="full-calendar-grid" id="full-calendar-grid">
-                    <!-- ปฏิทินจะถูกสร้างด้วย JavaScript -->
+                    <div class="full-calendar-header-day">อาทิตย์</div>
+                    <div class="full-calendar-header-day">จันทร์</div>
+                    <div class="full-calendar-header-day">อังคาร</div>
+                    <div class="full-calendar-header-day">พุธ</div>
+                    <div class="full-calendar-header-day">พฤหัส</div>
+                    <div class="full-calendar-header-day">ศุกร์</div>
+                    <div class="full-calendar-header-day">เสาร์</div>
                 </div>
             </div>
         </div>
+        
+        <div class="tab-content" id="reports-tab" style="display:none;"></div>
+        <div class="tab-content" id="settings-tab" style="display:none;"></div>
+
 
         <footer>
             <p>© 2025 ระบบจัดการตารางเวลาสำหรับ Auditor | พัฒนาเพื่อเพิ่มประสิทธิภาพในการทำงาน</p>
         </footer>
     </div>
 
-    <!-- Modal สำหรับเพิ่ม Note -->
     <div class="note-modal" id="note-modal">
         <div class="note-modal-content">
             <button class="close-modal" id="close-note-modal">&times;</button>
@@ -732,7 +842,6 @@
         </div>
     </div>
 
-    <!-- Modal สำหรับป้อนรหัสก่อนดึงรายงาน -->
     <div class="report-password-modal" id="report-password-modal">
         <div class="report-password-modal-content">
             <button class="close-modal" id="close-report-password-modal">&times;</button>
@@ -750,7 +859,6 @@
         </div>
     </div>
 
-    <!-- Modal สำหรับรายงาน -->
     <div class="report-modal" id="report-modal">
         <div class="report-modal-content">
             <button class="close-modal" id="close-report-modal">&times;</button>
@@ -778,8 +886,7 @@
                 <div class="form-group">
                     <label for="report-year">เลือกปี:</label>
                     <select class="form-control" id="report-year">
-                        <!-- Options will be generated by JavaScript -->
-                    </select>
+                        </select>
                 </div>
             </div>
             <div class="report-actions">
@@ -789,7 +896,6 @@
         </div>
     </div>
 
-    <!-- Modal สำหรับตั้งค่า -->
     <div class="settings-modal" id="settings-modal">
         <div class="settings-modal-content">
             <button class="close-modal" id="close-settings-modal">&times;</button>
@@ -807,7 +913,6 @@
         </div>
     </div>
 
-    <!-- Modal สำหรับแสดง Log -->
     <div class="log-modal" id="log-modal">
         <div class="log-modal-content">
             <button class="close-modal" id="close-log-modal">&times;</button>
@@ -815,147 +920,75 @@
                 <h3>Log การบันทึก</h3>
             </div>
             <div class="log-stats" id="log-stats">
-                <strong>สถิติการใช้งานระบบ:</strong>
+                <strong>สถิติการใช้งานระบบ (ข้อมูลในเบราว์เซอร์นี้):</strong>
                 <div class="log-stats-grid">
                     <div class="stat-item">
                         <div class="stat-value" id="total-logs">0</div>
                         <div class="stat-label">รายการ Log ทั้งหมด</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-value" id="storage-size">0 GB</div>
-                        <div class="stat-label">ขนาดข้อมูล</div>
+                        <div class="stat-value" id="storage-size">0 KB</div>
+                        <div class="stat-label">ขนาดข้อมูล (โดยประมาณ)</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-value" id="active-users">0</div>
-                        <div class="stat-label">ผู้ใช้งาน</div>
+                        <div class="stat-value" id="total-notes">0</div>
+                        <div class="stat-label">จำนวน Note</div>
                     </div>
                 </div>
             </div>
             <div class="log-content" id="log-content">
-                <!-- Log entries will be generated here -->
-            </div>
+                </div>
         </div>
     </div>
 
     <script>
-        // Navigation Menu Functionality
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', function() {
-                // Remove active class from all items
-                document.querySelectorAll('.nav-item').forEach(nav => {
-                    nav.classList.remove('active');
-                });
-                
-                // Add active class to clicked item
-                this.classList.add('active');
-                
-                // Tab switching logic
-                const tab = this.dataset.tab;
-                const calendarFull = document.getElementById('calendar-full');
-                
-                if (tab === 'calendar') {
-                    calendarFull.style.display = 'block';
-                } else {
-                    calendarFull.style.display = 'none';
-                }
-                
-                if (tab === 'reports') {
-                    openReportPasswordModal();
-                } else if (tab === 'settings') {
-                    openSettingsModal();
-                }
-                
-                console.log(`Switched to ${tab} tab`);
-            });
-        });
+        // *** ค่าคงที่สำหรับการตั้งค่า ***
+        const REPORT_PASSWORD = '1234'; // รหัสผ่านสำหรับเข้าถึงรายงาน (ควรเปลี่ยน/ซ่อนใน Production)
+        const SETTINGS_PASSWORD = '4321'; // รหัสผ่านสำหรับเข้าถึง Log (ควรเปลี่ยน/ซ่อนใน Production)
+        const LOCAL_STORAGE_NOTES_KEY = 'auditor_schedule_notes';
+        const LOCAL_STORAGE_LOGS_KEY = 'auditor_schedule_logs';
 
-        // ฟังก์ชันสำหรับ Note Modal
-        const noteModal = document.getElementById('note-modal');
-        const closeNoteModalBtn = document.getElementById('close-note-modal');
-        const cancelNoteBtn = document.getElementById('cancel-note');
-        const saveNoteBtn = document.getElementById('save-note');
-        const noteTextarea = document.getElementById('note-textarea');
-        const selectedDateElement = document.getElementById('selected-date');
+        // *** การโหลด/บันทึกข้อมูลด้วย Local Storage ***
 
-        // ฟังก์ชันสำหรับ Report Password Modal
-        const reportPasswordModal = document.getElementById('report-password-modal');
-        const closeReportPasswordModalBtn = document.getElementById('close-report-password-modal');
-        const cancelReportPasswordBtn = document.getElementById('cancel-report-password');
-        const confirmReportPasswordBtn = document.getElementById('confirm-report-password');
-        const reportPasswordInput = document.getElementById('report-password-input');
+        // โหลดข้อมูล Note จาก Local Storage
+        function loadNotes() {
+            try {
+                const notesData = localStorage.getItem(LOCAL_STORAGE_NOTES_KEY);
+                return notesData ? JSON.parse(notesData) : {};
+            } catch (e) {
+                console.error("Error loading notes from localStorage", e);
+                return {};
+            }
+        }
 
-        // ฟังก์ชันสำหรับ Report Modal
-        const reportModal = document.getElementById('report-modal');
-        const closeReportModalBtn = document.getElementById('close-report-modal');
-        const cancelReportBtn = document.getElementById('cancel-report');
-        const downloadReportBtn = document.getElementById('download-report');
-        const reportMonthSelect = document.getElementById('report-month');
-        const reportYearSelect = document.getElementById('report-year');
+        // บันทึกข้อมูล Note ไปยัง Local Storage
+        function saveNotes() {
+            try {
+                localStorage.setItem(LOCAL_STORAGE_NOTES_KEY, JSON.stringify(notes));
+            } catch (e) {
+                console.error("Error saving notes to localStorage", e);
+            }
+        }
 
-        // ฟังก์ชันสำหรับ Settings Modal
-        const settingsModal = document.getElementById('settings-modal');
-        const closeSettingsModalBtn = document.getElementById('close-settings-modal');
-        const cancelSettingsBtn = document.getElementById('cancel-settings');
-        const accessLogBtn = document.getElementById('access-log');
-        const settingsPasswordInput = document.getElementById('settings-password-input');
+        // โหลดข้อมูล Log จาก Local Storage
+        function loadLogs() {
+            try {
+                const logsData = localStorage.getItem(LOCAL_STORAGE_LOGS_KEY);
+                return logsData ? JSON.parse(logsData) : [];
+            } catch (e) {
+                console.error("Error loading logs from localStorage", e);
+                return [];
+            }
+        }
 
-        // ฟังก์ชันสำหรับ Log Modal
-        const logModal = document.getElementById('log-modal');
-        const closeLogModalBtn = document.getElementById('close-log-modal');
-        const logContent = document.getElementById('log-content');
-        const totalLogsElement = document.getElementById('total-logs');
-        const storageSizeElement = document.getElementById('storage-size');
-        const activeUsersElement = document.getElementById('active-users');
-
-        // ฟังก์ชันสำหรับปฏิทิน
-        const fullCalendarGrid = document.getElementById('full-calendar-grid');
-        const currentMonthElement = document.getElementById('current-month');
-        const prevMonthBtn = document.getElementById('prev-month');
-        const nextMonthBtn = document.getElementById('next-month');
-
-        // ตั้งค่าวันที่ปัจจุบัน
-        let currentDate = new Date();
-        let currentMonth = currentDate.getMonth();
-        let currentYear = currentDate.getFullYear();
-        let selectedDate = null;
-        let notes = {}; // เก็บ note ของแต่ละวัน
-        let logs = []; // เก็บ log การบันทึก
-
-        // ชื่อเดือนภาษาไทย
-        const thaiMonths = [
-            'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
-            'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
-        ];
-
-        // ชื่อวันภาษาไทย
-        const thaiDays = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
-
-        // วันหยุดราชการประจำปี (ปี 2025)
-        const regularHolidays = {
-            '2025-01-01': 'วันขึ้นปีใหม่',
-            '2025-02-03': 'วันมาฆบูชา',
-            '2025-04-06': 'วันจักรี',
-            '2025-04-13': 'วันสงกรานต์',
-            '2025-04-14': 'วันสงกรานต์',
-            '2025-04-15': 'วันสงกรานต์',
-            '2025-05-01': 'วันแรงงานแห่งชาติ',
-            '2025-05-05': 'วันฉัตรมงคล',
-            '2025-05-19': 'วันพืชมงคล',
-            '2025-06-02': 'วันเฉลิมพระชนมพรรษา พระบาทสมเด็จพระเจ้าอยู่หัว',
-            '2025-07-28': 'วันเฉลิมพระชนมพรรษา พระบรมราชินี',
-            '2025-08-12': 'วันเฉลิมพระชนมพรรษา พระบรมราชินีนาถ (วันแม่)',
-            '2025-10-13': 'วันคล้ายวันสวรรคต พระบาทสมเด็จพระบรมชนกาธิเบศร มหาภูมิพลอดุลยเดชมหาราช บรมนาถบพิตร',
-            '2025-10-23': 'วันปิยมหาราช',
-            '2025-12-05': 'วันคล้ายวันเฉลิมพระชนมพรรษา พระบาทสมเด็จพระบรมชนกาธิเบศร มหาภูมิพลอดุลยเดชมหาราช บรมนาถบพิตร (วันพ่อ)',
-            '2025-12-10': 'วันรัฐธรรมนูญ',
-            '2025-12-31': 'วันสิ้นปี'
-        };
-
-        // วันหยุดราชการเฉพาะกิจ (ปี 2025)
-        const specialHolidays = {
-            '2025-02-14': 'วันวาเลนไทน์',
-            '2025-07-15': 'วันเฉลิมพระชนมพรรษา พระบาทสมเด็จพระเจ้าอยู่หัว (กรณีพิเศษ)'
-        };
+        // บันทึกข้อมูล Log ไปยัง Local Storage
+        function saveLogs() {
+            try {
+                localStorage.setItem(LOCAL_STORAGE_LOGS_KEY, JSON.stringify(logs));
+            } catch (e) {
+                console.error("Error saving logs to localStorage", e);
+            }
+        }
 
         // ฟังก์ชันเพิ่ม log
         function addLog(action) {
@@ -968,51 +1001,294 @@
                 minute: '2-digit',
                 second: '2-digit'
             });
-            
+
             // ดึง User Agent
             const userAgent = navigator.userAgent;
-            
+
             logs.push({ 
                 timestamp, 
                 action, 
                 userAgent,
                 id: logs.length + 1
             });
+            saveLogs();
         }
 
+
+        // *** การตั้งค่าเริ่มต้นและตัวแปร ***
+        let currentDate = new Date();
+        let currentMonth = currentDate.getMonth();
+        let currentYear = currentDate.getFullYear();
+        let selectedDateForNote = null;
+        let notes = loadNotes(); // โหลด Note เมื่อเริ่มต้น
+        let logs = loadLogs();   // โหลด Log เมื่อเริ่มต้น
+
+        // ชื่อเดือนภาษาไทย
+        const thaiMonths = [
+            'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+            'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+        ];
+
+        // ชื่อวันภาษาไทย
+        const thaiDays = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
+        
+        // วันหยุดราชการ (ควรดึงจาก API ภายนอกในการใช้งานจริง แต่ใช้ Static Data สำหรับ Deploy)
+        const regularHolidays = {
+            '2025-01-01': 'วันขึ้นปีใหม่', '2025-02-03': 'วันมาฆบูชา', '2025-04-06': 'วันจักรี',
+            '2025-04-13': 'วันสงกรานต์', '2025-04-14': 'วันสงกรานต์', '2025-04-15': 'วันสงกรานต์',
+            '2025-05-01': 'วันแรงงานแห่งชาติ', '2025-05-05': 'วันฉัตรมงคล', '2025-05-19': 'วันพืชมงคล',
+            '2025-06-02': 'วันเฉลิมพระชนมพรรษา (ร.10)', '2025-07-28': 'วันเฉลิมพระชนมพรรษา (ราชินี)',
+            '2025-08-12': 'วันแม่', '2025-10-13': 'วันคล้ายวันสวรรคต ร.9', '2025-10-23': 'วันปิยมหาราช',
+            '2025-12-05': 'วันพ่อ', '2025-12-10': 'วันรัฐธรรมนูญ', '2025-12-31': 'วันสิ้นปี'
+        };
+
+        const specialHolidays = {
+             // ตัวอย่างวันหยุดเฉพาะกิจเพิ่มเติม 
+        };
+        
+        function isHoliday(dateKey) {
+            return regularHolidays[dateKey] || specialHolidays[dateKey];
+        }
+
+
+        // *** ฟังก์ชันปฏิทิน ***
+        
+        // ฟังก์ชันสร้างปฏิทิน
+        function generateCalendar(month, year) {
+            fullCalendarGrid.innerHTML = ''; // Clear existing days
+            
+            // Re-add day headers
+            thaiDays.forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.classList.add('full-calendar-header-day');
+                dayHeader.textContent = day;
+                fullCalendarGrid.appendChild(dayHeader);
+            });
+
+            // หาข้อมูลของเดือน
+            const firstDayOfMonth = new Date(year, month, 1);
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const lastDayOfPreviousMonth = new Date(year, month, 0).getDate();
+            
+            // หาตำแหน่งเริ่มต้นของวันแรก (0=อาทิตย์, 1=จันทร์, ...)
+            let startDayIndex = firstDayOfMonth.getDay(); 
+
+            // อัปเดตชื่อเดือนและปีที่แสดง
+            currentMonthElement.textContent = `${thaiMonths[month]} ${year}`;
+
+            let dateCounter = 1;
+            const today = new Date();
+            const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+
+            // 1. วันที่ของเดือนก่อนหน้า
+            for (let i = 0; i < startDayIndex; i++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.classList.add('full-calendar-day', 'other-month');
+                const dateNum = lastDayOfPreviousMonth - startDayIndex + i + 1;
+                dayDiv.innerHTML = `<span class="day-date">${dateNum}</span>`;
+                fullCalendarGrid.appendChild(dayDiv);
+            }
+
+            // 2. วันที่ของเดือนปัจจุบัน
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.classList.add('full-calendar-day');
+                
+                const dayOfWeek = (startDayIndex + i - 1) % 7; // 0=อาทิตย์, 6=เสาร์
+                
+                // สร้าง Date Key ในรูปแบบ YYYY-MM-DD
+                const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                
+                dayDiv.dataset.dateKey = dateKey;
+                
+                // ตรวจสอบวันหยุด
+                const holidayName = isHoliday(dateKey);
+                if (holidayName) {
+                    dayDiv.classList.add('holiday');
+                }
+                
+                // ตรวจสอบวันนี้
+                if (dateKey === todayKey) {
+                    dayDiv.classList.add('today');
+                }
+                
+                // ตรวจสอบวันเสาร์อาทิตย์
+                 if (dayOfWeek === 0) {
+                    dayDiv.classList.add('sunday');
+                } else if (dayOfWeek === 6) {
+                    dayDiv.classList.add('saturday');
+                }
+
+
+                // เพิ่มวันที่
+                dayDiv.innerHTML = `<span class="day-date">${i}</span>`;
+                
+                // เพิ่มเครื่องหมายวันหยุด
+                if (holidayName) {
+                    dayDiv.innerHTML += `<span class="holiday-mark">${holidayName}</span>`;
+                }
+
+                // แสดง Note Preview
+                if (notes[dateKey] && notes[dateKey].trim() !== '') {
+                    dayDiv.classList.add('has-note');
+                    dayDiv.innerHTML += `<span class="note-preview"><i class="fas fa-pencil-alt"></i> ${notes[dateKey].substring(0, 20)}...</span>`;
+                }
+                
+                // เพิ่ม Event Listener เพื่อเปิด Note Modal
+                dayDiv.addEventListener('click', function() {
+                    if (!this.classList.contains('other-month')) {
+                        openNoteModal(dateKey);
+                    }
+                });
+
+
+                fullCalendarGrid.appendChild(dayDiv);
+                dateCounter++;
+            }
+
+            // 3. วันที่ของเดือนถัดไป (เติมให้ครบ 6 แถว หากจำเป็น)
+            let nextMonthDay = 1;
+            const totalDaysRendered = startDayIndex + daysInMonth;
+            const remainingDays = 42 - totalDaysRendered; // เผื่อกรณี 6 แถว (6x7=42)
+            const requiredDays = totalDaysRendered <= 35 ? (35 - totalDaysRendered) : (42 - totalDaysRendered);
+
+
+            for (let i = 0; i < requiredDays; i++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.classList.add('full-calendar-day', 'other-month');
+                dayDiv.innerHTML = `<span class="day-date">${nextMonthDay}</span>`;
+                fullCalendarGrid.appendChild(dayDiv);
+                nextMonthDay++;
+            }
+        }
+        
+        // ฟังก์ชันเปลี่ยนเดือน
+        function changeMonth(direction) {
+            currentMonth += direction;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            } else if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            generateCalendar(currentMonth, currentYear);
+        }
+
+        // *** Modal Functions ***
+        
+        // Note Modal
+        function openNoteModal(dateKey) {
+            selectedDateForNote = dateKey;
+            const dateParts = dateKey.split('-');
+            const displayDate = `${dateParts[2]} ${thaiMonths[parseInt(dateParts[1]) - 1]} ${dateParts[0]}`;
+            
+            selectedDateElement.textContent = displayDate;
+            noteTextarea.value = notes[dateKey] || ''; // โหลด note ถ้ามี
+            noteModal.style.display = 'flex';
+            addLog(`เปิดหน้าบันทึก Note สำหรับวันที่ ${dateKey}`);
+        }
+
+        function closeNoteModal() {
+            noteModal.style.display = 'none';
+        }
+        
+        // Report Password Modal
+        function openReportPasswordModal() {
+             reportPasswordInput.value = '';
+             reportPasswordModal.style.display = 'flex';
+             addLog('เปิดหน้าป้อนรหัสสำหรับดึงรายงาน');
+        }
+
+        function closeReportPasswordModal() {
+            reportPasswordModal.style.display = 'none';
+            // กลับไปที่แท็บปฏิทินหากยกเลิก
+            document.querySelector('.nav-item[data-tab="calendar"]').click(); 
+        }
+        
+        // Report Modal (แสดงหลังป้อนรหัสผ่านถูกต้อง)
+        function openReportModal() {
+            reportModal.style.display = 'flex';
+            generateYearOptions(); // สร้างตัวเลือกปี
+            reportMonthSelect.value = new Date().getMonth(); // ตั้งค่าเดือนปัจจุบัน
+            addLog('เข้าสู่หน้าดึงรายงานสำเร็จ');
+        }
+
+        function closeReportModal() {
+            reportModal.style.display = 'none';
+             // กลับไปที่แท็บปฏิทิน
+            document.querySelector('.nav-item[data-tab="calendar"]').click(); 
+        }
+
+        // Settings Modal
+        function openSettingsModal() {
+            settingsPasswordInput.value = '';
+            settingsModal.style.display = 'flex';
+            addLog('เปิดหน้าป้อนรหัสสำหรับตั้งค่า');
+        }
+
+        function closeSettingsModal() {
+            settingsModal.style.display = 'none';
+             // กลับไปที่แท็บปฏิทิน
+            document.querySelector('.nav-item[data-tab="calendar"]').click(); 
+        }
+        
+        // Log Modal
+        function openLogModal() {
+            settingsModal.style.display = 'none'; // ปิด Settings Modal
+            updateLogStats(); // อัปเดตสถิติ
+            renderLogs(); // แสดง Log
+            logModal.style.display = 'flex';
+            addLog('เข้าถึงหน้า Log การบันทึก');
+        }
+
+        function closeLogModal() {
+            logModal.style.display = 'none';
+             // กลับไปที่แท็บปฏิทิน
+            document.querySelector('.nav-item[data-tab="calendar"]').click(); 
+        }
+        
         // ฟังก์ชันคำนวณขนาดข้อมูล (ประมาณการ)
         function calculateStorageSize() {
-            // ประมาณการขนาดข้อมูล log (bytes)
-            const logSize = logs.length * 200; // ประมาณ 200 bytes ต่อ log entry
-            const notesSize = JSON.stringify(notes).length;
-            const holidaysSize = JSON.stringify(regularHolidays).length + JSON.stringify(specialHolidays).length;
-            
-            const totalSize = logSize + notesSize + holidaysSize;
-            const sizeInGB = (totalSize / (1024 * 1024 * 1024)).toFixed(2);
-            
+            // ประมาณขนาดข้อมูล (เป็นตัวอักษร)
+            const logsString = JSON.stringify(logs);
+            const notesString = JSON.stringify(notes);
+            const totalSize = (logsString.length + notesString.length) * 2; // *2 เพื่อแปลงเป็นไบต์ (คร่าวๆ)
+
+            const sizeInKB = (totalSize / 1024).toFixed(2);
             return {
                 size: totalSize,
-                sizeInGB: sizeInGB,
-                sizeInMB: (totalSize / (1024 * 1024)).toFixed(2)
+                sizeInKB: sizeInKB
             };
         }
-
+        
         // ฟังก์ชันอัปเดตสถิติ
         function updateLogStats() {
             totalLogsElement.textContent = logs.length;
             
             const storageInfo = calculateStorageSize();
-            storageSizeElement.textContent = `${storageInfo.sizeInGB} GB`;
+            storageSizeElement.textContent = `${storageInfo.sizeInKB} KB`;
             
-            // นับผู้ใช้งาน (จาก User Agent ที่ไม่ซ้ำกัน)
-            const uniqueUserAgents = [...new Set(logs.map(log => log.userAgent))];
-            activeUsersElement.textContent = uniqueUserAgents.length;
+            totalNotes.textContent = Object.keys(notes).length;
         }
-
+        
+        // แสดง Log
+        function renderLogs() {
+            logContent.innerHTML = '';
+            logs.slice().reverse().forEach(log => { // แสดงย้อนหลัง
+                const logEntry = document.createElement('div');
+                logEntry.classList.add('log-entry');
+                logEntry.innerHTML = `<span class="log-timestamp">${log.timestamp}</span>: <span class="log-action">${log.action}</span> <br> <small>(${log.userAgent})</small>`;
+                logContent.appendChild(logEntry);
+            });
+        }
+        
         // สร้าง options สำหรับปีใน report modal
         function generateYearOptions() {
+            reportYearSelect.innerHTML = '';
             const currentYear = new Date().getFullYear();
-            for (let year = currentYear; year <= currentYear + 5; year++) {
+            for (let year = currentYear - 2; year <= currentYear + 5; year++) { // แสดงปีปัจจุบัน +/-
                 const option = document.createElement('option');
                 option.value = year;
                 option.textContent = year;
@@ -1021,390 +1297,220 @@
             reportYearSelect.value = currentYear;
         }
 
-        // ฟังก์ชันสร้างปฏิทิน
-        function generateCalendar(month, year) {
-            // อัปเดตชื่อเดือน
-            currentMonthElement.textContent = `${thaiMonths[month]} ${year + 543}`;
+        // ฟังก์ชันแปลง Array of Objects เป็น CSV
+        function convertToCSV(objArray) {
+            const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
+            let str = '';
             
-            // ล้างปฏิทินเก่า
-            fullCalendarGrid.innerHTML = '';
-            
-            // เพิ่มหัวตาราง
-            thaiDays.forEach(day => {
-                const headerDay = document.createElement('div');
-                headerDay.className = 'full-calendar-header-day';
-                headerDay.textContent = day;
-                fullCalendarGrid.appendChild(headerDay);
-            });
-            
-            // หาวันแรกของเดือน
-            const firstDay = new Date(year, month, 1).getDay();
-            // หาจำนวนวันในเดือน
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            // หาจำนวนวันในเดือนก่อนหน้า
-            const daysInPrevMonth = new Date(year, month, 0).getDate();
-            
-            // เพิ่มวันจากเดือนก่อนหน้า
-            for (let i = firstDay - 1; i >= 0; i--) {
-                const dayElement = document.createElement('div');
-                dayElement.className = 'full-calendar-day other-month';
-                const prevMonthDate = new Date(year, month - 1, daysInPrevMonth - i);
-                const dateStr = formatDate(prevMonthDate);
-                dayElement.innerHTML = `
-                    <div class="day-date">${daysInPrevMonth - i}</div>
-                `;
-                dayElement.dataset.date = dateStr;
-                fullCalendarGrid.appendChild(dayElement);
+            // Header
+            let header = Object.keys(array[0]).join(',')
+            str += header + '\r\n';
+
+            for (let i = 0; i < array.length; i++) {
+                let line = '';
+                for (let index in array[i]) {
+                    if (line !== '') line += ',';
+                    
+                    // ใส่ double quote ครอบหากมี comma หรือ double quote ในข้อมูล
+                    let value = array[i][index] !== null && array[i][index] !== undefined ? String(array[i][index]) : '';
+                    value = value.replace(/"/g, '""'); // Escaping double quotes
+                    line += `"${value}"`;
+                }
+                str += line + '\r\n';
             }
-            
-            // เพิ่มวันในเดือนปัจจุบัน
-            const today = new Date();
-            for (let i = 1; i <= daysInMonth; i++) {
-                const dayElement = document.createElement('div');
-                dayElement.className = 'full-calendar-day';
-                
-                const currentDateObj = new Date(year, month, i);
-                const dateStr = formatDate(currentDateObj);
-                
-                // ตรวจสอบว่าวันนี้คือวันปัจจุบันหรือไม่
-                if (i === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
-                    dayElement.classList.add('today');
-                }
-                
-                // ตรวจสอบว่าวันนี้เป็นวันหยุดราชการหรือไม่
-                let holidayHtml = '';
-                if (regularHolidays[dateStr]) {
-                    dayElement.classList.add('holiday');
-                    holidayHtml = `<div class="holiday-mark">${regularHolidays[dateStr]}</div>`;
-                } else if (specialHolidays[dateStr]) {
-                    dayElement.classList.add('holiday');
-                    holidayHtml = `<div class="holiday-mark">${specialHolidays[dateStr]}</div>`;
-                }
-                
-                // เพิ่มตัวอย่างเหตุการณ์
-                let eventsHtml = '';
-                if (i === 1 || i === 8 || i === 12 || i === 20) {
-                    eventsHtml = '<div class="event-dot" title="ประชุมทีม"></div>';
-                } else if (i === 5 || i === 18 || i === 25) {
-                    eventsHtml = '<div class="event-dot" title="ตรวจสอบเอกสาร"></div>';
-                }
-                
-                // เพิ่ม note ถ้ามี
-                let noteHtml = '';
-                if (notes[dateStr]) {
-                    noteHtml = `<div class="day-events">${notes[dateStr]}</div>`;
-                }
-                
-                dayElement.innerHTML = `
-                    <div class="day-date">${i}</div>
-                    ${holidayHtml}
-                    ${eventsHtml}
-                    ${noteHtml}
-                `;
-                dayElement.dataset.date = dateStr;
-                fullCalendarGrid.appendChild(dayElement);
-            }
-            
-            // คำนวณจำนวนช่องที่ต้องเพิ่มจากเดือนถัดไป
-            const totalCells = 42; // 6 แถว x 7 คอลัมน์
-            const remainingCells = totalCells - (firstDay + daysInMonth);
-            
-            // เพิ่มวันจากเดือนถัดไป
-            for (let i = 1; i <= remainingCells; i++) {
-                const dayElement = document.createElement('div');
-                dayElement.className = 'full-calendar-day other-month';
-                const nextMonthDate = new Date(year, month + 1, i);
-                const dateStr = formatDate(nextMonthDate);
-                dayElement.innerHTML = `
-                    <div class="day-date">${i}</div>
-                `;
-                dayElement.dataset.date = dateStr;
-                fullCalendarGrid.appendChild(dayElement);
-            }
-            
-            // เพิ่ม event listener ให้กับแต่ละวัน
-            document.querySelectorAll('.full-calendar-day').forEach(day => {
-                day.addEventListener('click', function() {
-                    const date = this.dataset.date;
-                    openNoteModal(date);
+            return str;
+        }
+        
+        // ฟังก์ชันดาวน์โหลด CSV
+        function downloadCSV(csv, filename) {
+            const csvFile = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const downloadLink = document.createElement('a');
+
+            downloadLink.download = filename;
+            downloadLink.href = window.URL.createObjectURL(csvFile);
+            downloadLink.style.display = 'none';
+
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        }
+
+        // *** Event Listeners และการทำงานหลัก ***
+        
+        // กำหนด element IDs
+        const totalNotes = document.getElementById('total-notes'); // ต้องเพิ่ม ID ใน Log Modal
+
+        const noteModal = document.getElementById('note-modal');
+        const closeNoteModalBtn = document.getElementById('close-note-modal');
+        const cancelNoteBtn = document.getElementById('cancel-note');
+        const saveNoteBtn = document.getElementById('save-note');
+        const noteTextarea = document.getElementById('note-textarea');
+        const selectedDateElement = document.getElementById('selected-date');
+
+        const reportPasswordModal = document.getElementById('report-password-modal');
+        const closeReportPasswordModalBtn = document.getElementById('close-report-password-modal');
+        const cancelReportPasswordBtn = document.getElementById('cancel-report-password');
+        const confirmReportPasswordBtn = document.getElementById('confirm-report-password');
+        const reportPasswordInput = document.getElementById('report-password-input');
+
+        const reportModal = document.getElementById('report-modal');
+        const closeReportModalBtn = document.getElementById('close-report-modal');
+        const cancelReportBtn = document.getElementById('cancel-report');
+        const downloadReportBtn = document.getElementById('download-report');
+        const reportMonthSelect = document.getElementById('report-month');
+        const reportYearSelect = document.getElementById('report-year');
+
+        const settingsModal = document.getElementById('settings-modal');
+        const closeSettingsModalBtn = document.getElementById('close-settings-modal');
+        const cancelSettingsBtn = document.getElementById('cancel-settings');
+        const accessLogBtn = document.getElementById('access-log');
+        const settingsPasswordInput = document.getElementById('settings-password-input');
+
+        const logModal = document.getElementById('log-modal');
+        const closeLogModalBtn = document.getElementById('close-log-modal');
+        const logContent = document.getElementById('log-content');
+        const totalLogsElement = document.getElementById('total-logs');
+        const storageSizeElement = document.getElementById('storage-size');
+        const activeUsersElement = document.getElementById('active-users'); // ไม่ได้ใช้ในการนับผู้ใช้จริงใน Local Storage
+
+        const fullCalendarGrid = document.getElementById('full-calendar-grid');
+        const currentMonthElement = document.getElementById('current-month');
+        const prevMonthBtn = document.getElementById('prev-month');
+        const nextMonthBtn = document.getElementById('next-month');
+        
+        // 1. Navigation Menu Functionality
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(nav => {
+                    nav.classList.remove('active');
                 });
-            });
-        }
+                this.classList.add('active');
+                
+                // ซ่อน Tab Content ทั้งหมด
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.style.display = 'none';
+                });
 
-        // ฟังก์ชันจัดรูปแบบวันที่
-        function formatDate(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-
-        // ฟังก์ชันเปิด Note Modal
-        function openNoteModal(date) {
-            selectedDate = date;
-            const dateObj = new Date(date);
-            const formattedDate = `${dateObj.getDate()} ${thaiMonths[dateObj.getMonth()]} ${dateObj.getFullYear() + 543}`;
-            selectedDateElement.textContent = formattedDate;
-            noteTextarea.value = notes[date] || '';
-            noteModal.style.display = 'flex';
-        }
-
-        // ฟังก์ชันปิด Note Modal
-        function closeNoteModal() {
-            noteModal.style.display = 'none';
-            selectedDate = null;
-        }
-
-        // ฟังก์ชันบันทึก Note
-        function saveNote() {
-            if (selectedDate) {
-                const note = noteTextarea.value.trim();
-                if (note) {
-                    notes[selectedDate] = note;
-                    addLog(`บันทึก Note วันที่ ${selectedDate}: ${note}`);
-                } else {
-                    delete notes[selectedDate];
-                    addLog(`ลบ Note วันที่ ${selectedDate}`);
+                const tab = this.dataset.tab;
+                if (tab === 'calendar') {
+                    document.getElementById('calendar-full').style.display = 'block';
+                    generateCalendar(currentMonth, currentYear); // โหลดปฏิทินอีกครั้งเมื่อกลับมา
+                } else if (tab === 'reports') {
+                    openReportPasswordModal();
+                } else if (tab === 'settings') {
+                    openSettingsModal();
                 }
-                closeNoteModal();
+            });
+        });
+
+        // 2. Calendar Navigation
+        prevMonthBtn.addEventListener('click', () => {
+            changeMonth(-1);
+            addLog(`เปลี่ยนปฏิทินไปเป็นเดือน ${thaiMonths[currentMonth]} ${currentYear}`);
+        });
+        
+        nextMonthBtn.addEventListener('click', () => {
+            changeMonth(1);
+            addLog(`เปลี่ยนปฏิทินไปเป็นเดือน ${thaiMonths[currentMonth]} ${currentYear}`);
+        });
+
+        // 3. Note Modal Actions
+        closeNoteModalBtn.addEventListener('click', closeNoteModal);
+        cancelNoteBtn.addEventListener('click', closeNoteModal);
+        
+        saveNoteBtn.addEventListener('click', function() {
+            if (selectedDateForNote) {
+                const note = noteTextarea.value.trim();
+                if (note === '') {
+                    // ลบ note ถ้ามีการลบข้อความออกหมด
+                    delete notes[selectedDateForNote];
+                    addLog(`ลบ Note ออกจากวันที่ ${selectedDateForNote}`);
+                } else {
+                    notes[selectedDateForNote] = note;
+                    addLog(`บันทึก Note สำหรับวันที่ ${selectedDateForNote}: ${note.substring(0, 50)}...`);
+                }
+                saveNotes();
                 generateCalendar(currentMonth, currentYear); // อัปเดตปฏิทิน
-                updateLogStats(); // อัปเดตสถิติ
+                closeNoteModal();
             }
-        }
+        });
 
-        // ฟังก์ชันเปิด Report Password Modal
-        function openReportPasswordModal() {
-            reportPasswordModal.style.display = 'flex';
-            reportPasswordInput.value = '';
-        }
+        // 4. Report Password Modal Actions
+        closeReportPasswordModalBtn.addEventListener('click', closeReportPasswordModal);
+        cancelReportPasswordBtn.addEventListener('click', closeReportPasswordModal);
+        
+        confirmReportPasswordBtn.addEventListener('click', function() {
+            if (reportPasswordInput.value === REPORT_PASSWORD) {
+                reportPasswordModal.style.display = 'none';
+                openReportModal();
+                reportPasswordInput.value = '';
+            } else {
+                alert('รหัสผ่านไม่ถูกต้อง');
+                reportPasswordInput.value = '';
+                addLog('พยายามเข้าถึงรายงาน: รหัสผ่านไม่ถูกต้อง');
+            }
+        });
 
-        // ฟังก์ชันปิด Report Password Modal
-        function closeReportPasswordModal() {
-            reportPasswordModal.style.display = 'none';
-        }
+        // 5. Report Modal Actions
+        closeReportModalBtn.addEventListener('click', closeReportModal);
+        cancelReportBtn.addEventListener('click', closeReportModal);
+        
+        downloadReportBtn.addEventListener('click', function() {
+            const month = parseInt(reportMonthSelect.value);
+            const year = parseInt(reportYearSelect.value);
+            
+            if (isNaN(month) || isNaN(year)) {
+                alert('กรุณาเลือกเดือนและปีให้ถูกต้อง');
+                return;
+            }
 
-        // ฟังก์ชันเปิด Report Modal
-        function openReportModal() {
-            reportModal.style.display = 'flex';
-        }
-
-        // ฟังก์ชันปิด Report Modal
-        function closeReportModal() {
-            reportModal.style.display = 'none';
-        }
-
-        // ฟังก์ชันเปิด Settings Modal
-        function openSettingsModal() {
-            settingsModal.style.display = 'flex';
-            settingsPasswordInput.value = '';
-        }
-
-        // ฟังก์ชันปิด Settings Modal
-        function closeSettingsModal() {
-            settingsModal.style.display = 'none';
-        }
-
-        // ฟังก์ชันเปิด Log Modal
-        function openLogModal() {
-            logModal.style.display = 'flex';
-            displayLogs();
-            updateLogStats();
-        }
-
-        // ฟังก์ชันปิด Log Modal
-        function closeLogModal() {
-            logModal.style.display = 'none';
-        }
-
-        // ฟังก์ชันแสดง Log
-        function displayLogs() {
-            logContent.innerHTML = '';
-            if (logs.length === 0) {
-                logContent.innerHTML = '<div class="log-entry">ไม่มีข้อมูล log</div>';
+            const monthPadded = String(month + 1).padStart(2, '0');
+            const prefix = `${year}-${monthPadded}`;
+            
+            // กรอง Note เฉพาะเดือนที่เลือก
+            const filteredNotes = Object.keys(notes)
+                .filter(dateKey => dateKey.startsWith(prefix))
+                .map(dateKey => ({
+                    Date: dateKey,
+                    Note: notes[dateKey].replace(/\n/g, ' | ') // แทนที่ขึ้นบรรทัดใหม่ด้วย |
+                }));
+                
+            if (filteredNotes.length === 0) {
+                alert(`ไม่พบ Note ในเดือน ${thaiMonths[month]} ปี ${year}`);
+                addLog(`พยายามดาวน์โหลดรายงาน: ไม่พบข้อมูลในเดือน ${prefix}`);
                 return;
             }
             
-            // แสดง log ย้อนหลัง 50 รายการล่าสุด
-            const recentLogs = logs.slice(-50).reverse();
-            recentLogs.forEach(log => {
-                const logEntry = document.createElement('div');
-                logEntry.className = 'log-entry';
-                logEntry.innerHTML = `
-                    <span class="log-timestamp">[${log.timestamp}]</span>
-                    <span class="log-action">${log.action}</span>
-                `;
-                logContent.appendChild(logEntry);
-            });
-        }
-
-        // ฟังก์ชันสร้าง CSV พร้อมรองรับภาษาไทย
-        function generateCSV(month, year) {
-            // หาจำนวนวันในเดือน
-            const daysInMonth = new Date(year, parseInt(month) + 1, 0).getDate();
-            
-            // สร้าง header ของ CSV ด้วย BOM สำหรับรองรับ UTF-8
-            let csvContent = '\uFEFF'; // UTF-8 BOM
-            csvContent += "วันที่,Note,วันหยุดราชการ\n";
-            
-            // เพิ่มข้อมูลแต่ละวัน
-            for (let i = 1; i <= daysInMonth; i++) {
-                const dateStr = `${year}-${String(parseInt(month) + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-                const note = notes[dateStr] || '';
-                const formattedDate = `${i}/${parseInt(month) + 1}/${year}`;
-                
-                // ตรวจสอบว่าวันนี้เป็นวันหยุดราชการหรือไม่
-                let holidayInfo = '';
-                if (regularHolidays[dateStr]) {
-                    holidayInfo = regularHolidays[dateStr];
-                } else if (specialHolidays[dateStr]) {
-                    holidayInfo = specialHolidays[dateStr];
-                }
-                
-                // Escape ข้อความสำหรับ CSV
-                const escapedNote = note.replace(/"/g, '""');
-                const escapedHoliday = holidayInfo.replace(/"/g, '""');
-                csvContent += `"${formattedDate}","${escapedNote}","${escapedHoliday}"\n`;
-            }
-            
-            return csvContent;
-        }
-
-        // ฟังก์ชันดาวน์โหลด CSV
-        function downloadCSV() {
-            const month = reportMonthSelect.value;
-            const year = reportYearSelect.value;
-            const csvContent = generateCSV(month, year);
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', `รายงาน_note_${thaiMonths[month]}_${year}.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            addLog(`ดาวน์โหลดรายงาน CSV ประจำเดือน ${thaiMonths[month]} ปี ${year}`);
-            updateLogStats();
-        }
-
-        // นำทางเดือน
-        prevMonthBtn.addEventListener('click', () => {
-            currentMonth--;
-            if (currentMonth < 0) {
-                currentMonth = 11;
-                currentYear--;
-            }
-            generateCalendar(currentMonth, currentYear);
+            const csv = convertToCSV(filteredNotes);
+            const filename = `Auditor_Notes_Report_${thaiMonths[month]}_${year}.csv`;
+            downloadCSV(csv, filename);
+            addLog(`ดาวน์โหลดรายงาน CSV เดือน ${prefix} จำนวน ${filteredNotes.length} รายการ`);
+            closeReportModal();
         });
 
-        nextMonthBtn.addEventListener('click', () => {
-            currentMonth++;
-            if (currentMonth > 11) {
-                currentMonth = 0;
-                currentYear++;
-            }
-            generateCalendar(currentMonth, currentYear);
-        });
-
-        // ปิด modal ด้วยปุ่ม ESC
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape') {
-                if (noteModal.style.display === 'flex') {
-                    closeNoteModal();
-                } else if (reportPasswordModal.style.display === 'flex') {
-                    closeReportPasswordModal();
-                } else if (reportModal.style.display === 'flex') {
-                    closeReportModal();
-                } else if (settingsModal.style.display === 'flex') {
-                    closeSettingsModal();
-                } else if (logModal.style.display === 'flex') {
-                    closeLogModal();
-                }
-            }
-        });
-
-        // Event listeners สำหรับ Note Modal
-        closeNoteModalBtn.addEventListener('click', closeNoteModal);
-        cancelNoteBtn.addEventListener('click', closeNoteModal);
-        saveNoteBtn.addEventListener('click', saveNote);
-
-        // Event listeners สำหรับ Report Password Modal
-        closeReportPasswordModalBtn.addEventListener('click', closeReportPasswordModal);
-        cancelReportPasswordBtn.addEventListener('click', closeReportPasswordModal);
-        confirmReportPasswordBtn.addEventListener('click', () => {
-            if (reportPasswordInput.value === '#1234') {
-                closeReportPasswordModal();
-                openReportModal();
-                addLog('เข้าถึงหน้ารายงาน');
-            } else {
-                alert('รหัสผ่านไม่ถูกต้อง');
-            }
-        });
-
-        // Event listeners สำหรับ Report Modal
-        closeReportModalBtn.addEventListener('click', closeReportModal);
-        cancelReportBtn.addEventListener('click', closeReportModal);
-        downloadReportBtn.addEventListener('click', downloadCSV);
-
-        // Event listeners สำหรับ Settings Modal
+        // 6. Settings Modal Actions
         closeSettingsModalBtn.addEventListener('click', closeSettingsModal);
         cancelSettingsBtn.addEventListener('click', closeSettingsModal);
-        accessLogBtn.addEventListener('click', () => {
-            if (settingsPasswordInput.value === '#1234') {
-                closeSettingsModal();
+        
+        accessLogBtn.addEventListener('click', function() {
+            if (settingsPasswordInput.value === SETTINGS_PASSWORD) {
                 openLogModal();
-                addLog('เข้าถึง Log การบันทึก');
-                updateLogStats();
+                settingsPasswordInput.value = '';
             } else {
                 alert('รหัสผ่านไม่ถูกต้อง');
+                settingsPasswordInput.value = '';
+                addLog('พยายามเข้าถึง Log: รหัสผ่านไม่ถูกต้อง');
             }
         });
 
-        // Event listeners สำหรับ Log Modal
+        // 7. Log Modal Actions
         closeLogModalBtn.addEventListener('click', closeLogModal);
 
-        // ปิด Modal เมื่อคลิกนอก modal
-        window.addEventListener('click', (event) => {
-            if (event.target === noteModal) {
-                closeNoteModal();
-            } else if (event.target === reportPasswordModal) {
-                closeReportPasswordModal();
-            } else if (event.target === reportModal) {
-                closeReportModal();
-            } else if (event.target === settingsModal) {
-                closeSettingsModal();
-            } else if (event.target === logModal) {
-                closeLogModal();
-            }
-        });
-
-        // ตั้งค่าเริ่มต้นให้ report modal
-        reportMonthSelect.value = currentMonth;
-        generateYearOptions();
-        
-        // ตั้งค่าเริ่มต้นปฏิทินให้แสดงวันที่ปัจจุบัน
-        document.getElementById('current-month').textContent = `${thaiMonths[currentMonth]} ${currentYear + 543}`;
+        // *** การเริ่มต้นระบบ ***
+        addLog('เริ่มต้นระบบและโหลดข้อมูลจาก Local Storage');
         generateCalendar(currentMonth, currentYear);
+        generateYearOptions(); // เรียกใช้ครั้งแรก
         
-        // เพิ่ม log ตัวอย่าง
-        addLog('ระบบเริ่มทำงาน');
-        addLog('เข้าสู่ระบบโดยผู้ใช้ admin');
-        
-        // จำลองการเพิ่ม log หลายรายการ
-        for (let i = 0; i < 1000; i++) {
-            const actions = [
-                'เข้าถึงหน้าปฏิทิน',
-                'บันทึก Note วันที่ 2025-01-01',
-                'ดาวน์โหลดรายงาน CSV',
-                'เข้าถึงหน้ารายงาน',
-                'อัปเดตการตั้งค่าระบบ'
-            ];
-            const randomAction = actions[Math.floor(Math.random() * actions.length)];
-            addLog(randomAction);
-        }
-        
-        // แสดงขนาดข้อมูลเริ่มต้น
-        updateLogStats();
     </script>
 </body>
 </html>
